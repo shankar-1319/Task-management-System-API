@@ -2,13 +2,17 @@ from src.task.dtos import TaskSchema,TaskSchemaWithId
 from sqlalchemy.orm import Session
 from src.task.models import TaskModel
 from fastapi import HTTPException
+from src.user.models import UserModel
 
 # Add data to database postgres
-def create_task(task_data:TaskSchema,db:Session):
+def create_task(task_data:TaskSchema,db:Session,user:UserModel):
     data = task_data.model_dump()
     new_task = TaskModel(title=data["title"],
                          description=data["description"],
-                         status=data["status"])
+                         status=data["status"],
+                         user_id=user.id
+                         )
+    
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
@@ -16,8 +20,8 @@ def create_task(task_data:TaskSchema,db:Session):
 
 
 # Get all the values from postgres
-def get_all_tasks(db:Session):
-    all_tasks=db.query(TaskModel).all()
+def get_all_tasks(db:Session,user:UserModel):
+    all_tasks=db.query(TaskModel).filter(TaskModel.user_id==user.id).all()
     return all_tasks
 
 
